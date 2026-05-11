@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using WIMS.Application.Mapping;
+using WIMS.Application.Services;
 using WIMS.Core.Interfaces;
 using WIMS.Data;
 using WIMS.Data.Repositories;
@@ -22,7 +23,7 @@ public partial class App : System.Windows.Application
 {
     public static IServiceProvider? ServiceProvider { get; private set; }
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -39,6 +40,8 @@ public partial class App : System.Windows.Application
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IInventoryDashboardService, InventoryDashboardService>();
+        services.AddScoped<IProductCatalogService, ProductCatalogService>();
+        services.AddScoped<ISupplierCatalogService, SupplierCatalogService>();
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IMapperService, MapperService>();
@@ -66,14 +69,30 @@ public partial class App : System.Windows.Application
 
         ServiceProvider = services.BuildServiceProvider();
 
-        using (var scope = ServiceProvider.CreateScope())
+        try
         {
-            var db = scope.ServiceProvider.GetRequiredService<WIMSDbContext>();
-            db.Database.EnsureCreated();
-            DatabaseSeeder.SeedAsync(db).GetAwaiter().GetResult();
+            await InitializeDatabaseAsync(ServiceProvider);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Veritabanı başlatılamadı: {ex.Message}",
+                "StoragePulse",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown();
+            return;
         }
 
         var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
+    }
+
+    private static async Task InitializeDatabaseAsync(IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<WIMSDbContext>();
+        await db.Database.MigrateAsync();
+        await DatabaseSeeder.SeedAsync(db);
     }
 }

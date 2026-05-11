@@ -1,17 +1,15 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-using WIMS.Core.Entities;
+using WIMS.Application.Services;
 using WIMS.Core.Interfaces;
-using WIMS.Data;
 using WIMS.WPF.Services;
 
 namespace WIMS.WPF.ViewModels.Suppliers;
 
-public partial class SuppliersViewModel : BaseViewModel
+public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
 {
-    private readonly WIMSDbContext _db;
+    private readonly ISupplierCatalogService _supplierService;
     private readonly INavigationService _navigation;
     private List<SupplierRow> _allSuppliers = new();
 
@@ -23,16 +21,18 @@ public partial class SuppliersViewModel : BaseViewModel
     [ObservableProperty]
     private string? _searchText;
 
-    public SuppliersViewModel(WIMSDbContext db, INavigationService navigation)
+    public SuppliersViewModel(ISupplierCatalogService supplierService, INavigationService navigation)
     {
-        _db = db;
+        _supplierService = supplierService;
         _navigation = navigation;
         Title = "Tedarikçiler";
-        _ = LoadSuppliersAsync();
     }
 
+    public Task InitializeAsync(CancellationToken cancellationToken = default)
+        => LoadSuppliersAsync(cancellationToken);
+
     [RelayCommand]
-    private async Task LoadSuppliersAsync()
+    private async Task LoadSuppliersAsync(CancellationToken cancellationToken = default)
     {
         if (IsBusy)
         {
@@ -44,21 +44,17 @@ public partial class SuppliersViewModel : BaseViewModel
             IsBusy = true;
             ClearError();
 
-            _allSuppliers = await _db.Suppliers
-                .AsNoTracking()
-                .Where(s => s.IsActive)
-                .OrderBy(s => s.Code)
-                .Select(s => new SupplierRow
-                {
-                    Id = s.Id,
-                    Code = s.Code,
-                    Name = s.Name,
-                    ContactName = s.ContactName ?? string.Empty,
-                    Phone = s.Phone ?? string.Empty,
-                    Email = s.Email ?? string.Empty,
-                    TaxNumber = s.TaxNumber ?? string.Empty
-                })
-                .ToListAsync();
+            var suppliers = await _supplierService.GetSuppliersAsync(cancellationToken);
+            _allSuppliers = suppliers.Select(s => new SupplierRow
+            {
+                Id = s.Id,
+                Code = s.Code,
+                Name = s.Name,
+                ContactName = s.ContactName,
+                Phone = s.Phone,
+                Email = s.Email,
+                TaxNumber = s.TaxNumber
+            }).ToList();
 
             ApplyFilter();
         }
@@ -101,16 +97,13 @@ public partial class SuppliersViewModel : BaseViewModel
         try
         {
             ClearError();
-            var entity = await _db.Suppliers.FirstOrDefaultAsync(s => s.Id == row.Id && s.IsActive);
-            if (entity is null)
+            var result = await _supplierService.DeleteSupplierAsync(row.Id);
+            if (!result.Success)
             {
-                SetError("Tedarikçi bulunamadı.");
+                SetError(result.ErrorMessage ?? "Tedarikçi silinemedi.");
                 return;
             }
 
-            entity.IsActive = false;
-            entity.UpdatedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
             await LoadSuppliersAsync();
         }
         catch (Exception ex)
@@ -141,9 +134,9 @@ public partial class SuppliersViewModel : BaseViewModel
     }
 }
 
-public partial class SuppliersDetailViewModel : BaseViewModel, IParameterizedViewModel
+public partial class SuppliersDetailViewModel : BaseViewModel, IAsyncParameterizedViewModel
 {
-    private readonly WIMSDbContext _db;
+    private readonly ISupplierCatalogService _supplierService;
     private readonly INavigationService _navigation;
 
     [ObservableProperty]
@@ -170,18 +163,18 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IParameterizedVie
     [ObservableProperty]
     private string? _taxNumber;
 
-    public SuppliersDetailViewModel(WIMSDbContext db, INavigationService navigation)
+    public SuppliersDetailViewModel(ISupplierCatalogService supplierService, INavigationService navigation)
     {
-        _db = db;
+        _supplierService = supplierService;
         _navigation = navigation;
         Title = "Tedarikçi Detayı";
     }
 
-    public void SetParameter(object parameter)
+    public async Task SetParameterAsync(object parameter, CancellationToken cancellationToken = default)
     {
         if (parameter is int id)
         {
-            _ = LoadSupplierAsync(id);
+            await LoadSupplierAsync(id, cancellationToken);
         }
     }
 
@@ -192,39 +185,24 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IParameterizedVie
         {
             ClearError();
 
-            if (string.IsNullOrWhiteSpace(Code) || string.IsNullOrWhiteSpace(Name))
+            var result = await _supplierService.SaveSupplierAsync(new SupplierEditModel
             {
-                SetError("Tedarikçi kodu ve adı zorunludur.");
+                Id = Id,
+                Code = Code,
+                Name = Name,
+                ContactName = ContactName,
+                Phone = Phone,
+                Email = Email,
+                Address = Address,
+                TaxNumber = TaxNumber
+            });
+            if (!result.Success)
+            {
+                SetError(result.ErrorMessage ?? "Tedarikçi kaydedilemedi.");
                 return;
             }
 
-            Supplier entity;
-            if (Id == 0)
-            {
-                entity = new Supplier { CreatedAt = DateTime.UtcNow };
-                _db.Suppliers.Add(entity);
-            }
-            else
-            {
-                entity = await _db.Suppliers.FirstOrDefaultAsync(s => s.Id == Id && s.IsActive)
-                    ?? throw new InvalidOperationException("Tedarikçi bulunamadı.");
-                entity.UpdatedAt = DateTime.UtcNow;
-            }
-
-            entity.Code = Code.Trim();
-            entity.Name = Name.Trim();
-            entity.ContactName = Normalize(ContactName);
-            entity.Phone = Normalize(Phone);
-            entity.Email = Normalize(Email);
-            entity.Address = Normalize(Address);
-            entity.TaxNumber = Normalize(TaxNumber);
-
-            await _db.SaveChangesAsync();
             Close();
-        }
-        catch (DbUpdateException ex)
-        {
-            SetError($"Tedarikçi kaydedilemedi. Kod benzersiz olmalı. {ex.InnerException?.Message ?? ex.Message}");
         }
         catch (Exception ex)
         {
@@ -235,9 +213,9 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IParameterizedVie
     [RelayCommand]
     private void Cancel() => Close();
 
-    private async Task LoadSupplierAsync(int id)
+    private async Task LoadSupplierAsync(int id, CancellationToken cancellationToken = default)
     {
-        var supplier = await _db.Suppliers.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
+        var supplier = await _supplierService.GetSupplierAsync(id, cancellationToken);
         if (supplier is null)
         {
             SetError("Tedarikçi bulunamadı.");
@@ -266,9 +244,6 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IParameterizedVie
             _navigation.NavigateTo<SuppliersViewModel>();
         }
     }
-
-    private static string? Normalize(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
 
 public sealed class SupplierRow

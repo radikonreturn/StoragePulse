@@ -16,3 +16,8 @@ public abstract partial class BaseViewModel : ObservableObject
     protected void ClearError() => ErrorMessage = null;
     protected void SetError(string message) => ErrorMessage = message;
 }
+
+public interface IAsyncInitializable
+{
+    Task InitializeAsync(CancellationToken cancellationToken = default);
+}

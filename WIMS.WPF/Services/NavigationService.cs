@@ -20,6 +20,12 @@ public partial class NavigationService : ObservableObject, INavigationService
     }
 
     public void NavigateTo<TViewModel>() where TViewModel : class
+        => NavigateToCore<TViewModel>(null);
+
+    public void NavigateTo<TViewModel>(object parameter) where TViewModel : class
+        => NavigateToCore<TViewModel>(parameter);
+
+    private void NavigateToCore<TViewModel>(object? parameter) where TViewModel : class
     {
         var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
         if (viewModel is BaseViewModel baseVm)
@@ -32,14 +38,8 @@ public partial class NavigationService : ObservableObject, INavigationService
 
             CurrentView = baseVm;
             OnPropertyChanged(nameof(CanGoBack));
+            _ = InitializeViewAsync(baseVm, parameter);
         }
-    }
-
-    public void NavigateTo<TViewModel>(object parameter) where TViewModel : class
-    {
-        NavigateTo<TViewModel>();
-        if (CurrentView is IParameterizedViewModel pvm)
-            pvm.SetParameter(parameter);
     }
 
     public void GoBack()
@@ -50,6 +50,37 @@ public partial class NavigationService : ObservableObject, INavigationService
             var vm = _serviceProvider.GetRequiredService(previousType);
             CurrentView = vm as BaseViewModel;
             OnPropertyChanged(nameof(CanGoBack));
+            if (CurrentView is not null)
+            {
+                _ = InitializeViewAsync(CurrentView, null);
+            }
+        }
+    }
+
+    private static async Task InitializeViewAsync(BaseViewModel viewModel, object? parameter)
+    {
+        try
+        {
+            if (parameter is not null)
+            {
+                if (viewModel is IAsyncParameterizedViewModel asyncParameterizedViewModel)
+                {
+                    await asyncParameterizedViewModel.SetParameterAsync(parameter);
+                }
+                else if (viewModel is IParameterizedViewModel parameterizedViewModel)
+                {
+                    parameterizedViewModel.SetParameter(parameter);
+                }
+            }
+
+            if (viewModel is IAsyncInitializable initializable)
+            {
+                await initializable.InitializeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            viewModel.ErrorMessage = $"Sayfa yüklenemedi: {ex.Message}";
         }
     }
 }
@@ -57,4 +88,9 @@ public partial class NavigationService : ObservableObject, INavigationService
 public interface IParameterizedViewModel
 {
     void SetParameter(object parameter);
+}
+
+public interface IAsyncParameterizedViewModel
+{
+    Task SetParameterAsync(object parameter, CancellationToken cancellationToken = default);
 }

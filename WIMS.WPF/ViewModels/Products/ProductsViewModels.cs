@@ -1,17 +1,15 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-using WIMS.Core.Entities;
+using WIMS.Application.Services;
 using WIMS.Core.Interfaces;
-using WIMS.Data;
 using WIMS.WPF.Services;
 
 namespace WIMS.WPF.ViewModels.Products;
 
-public partial class ProductsViewModel : BaseViewModel
+public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
 {
-    private readonly WIMSDbContext _db;
+    private readonly IProductCatalogService _productService;
     private readonly INavigationService _navigation;
     private List<ProductRow> _allProducts = new();
 
@@ -23,16 +21,18 @@ public partial class ProductsViewModel : BaseViewModel
     [ObservableProperty]
     private string? _searchText;
 
-    public ProductsViewModel(WIMSDbContext db, INavigationService navigation)
+    public ProductsViewModel(IProductCatalogService productService, INavigationService navigation)
     {
-        _db = db;
+        _productService = productService;
         _navigation = navigation;
         Title = "Ürün Kartları";
-        _ = LoadProductsAsync();
     }
 
+    public Task InitializeAsync(CancellationToken cancellationToken = default)
+        => LoadProductsAsync(cancellationToken);
+
     [RelayCommand]
-    private async Task LoadProductsAsync()
+    private async Task LoadProductsAsync(CancellationToken cancellationToken = default)
     {
         if (IsBusy)
         {
@@ -44,21 +44,17 @@ public partial class ProductsViewModel : BaseViewModel
             IsBusy = true;
             ClearError();
 
-            _allProducts = await _db.Products
-                .AsNoTracking()
-                .Where(p => p.IsActive)
-                .OrderBy(p => p.Code)
-                .Select(p => new ProductRow
-                {
-                    Id = p.Id,
-                    Code = p.Code,
-                    Name = p.Name,
-                    CategoryName = p.Category.Name,
-                    UnitSymbol = p.Unit.Symbol,
-                    ReorderPoint = p.ReorderPoint,
-                    UnitPrice = p.UnitPrice
-                })
-                .ToListAsync();
+            var products = await _productService.GetProductsAsync(cancellationToken);
+            _allProducts = products.Select(p => new ProductRow
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                CategoryName = p.CategoryName,
+                UnitSymbol = p.UnitSymbol,
+                ReorderPoint = p.ReorderPoint,
+                UnitPrice = p.UnitPrice
+            }).ToList();
 
             ApplyFilter();
         }
@@ -101,16 +97,13 @@ public partial class ProductsViewModel : BaseViewModel
         try
         {
             ClearError();
-            var entity = await _db.Products.FirstOrDefaultAsync(p => p.Id == row.Id && p.IsActive);
-            if (entity is null)
+            var result = await _productService.DeleteProductAsync(row.Id);
+            if (!result.Success)
             {
-                SetError("Ürün bulunamadı.");
+                SetError(result.ErrorMessage ?? "Ürün silinemedi.");
                 return;
             }
 
-            entity.IsActive = false;
-            entity.UpdatedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
             await LoadProductsAsync();
         }
         catch (Exception ex)
@@ -147,9 +140,9 @@ public partial class ProductsViewModel : BaseViewModel
     }
 }
 
-public partial class ProductsDetailViewModel : BaseViewModel, IParameterizedViewModel
+public partial class ProductsDetailViewModel : BaseViewModel, IAsyncInitializable, IAsyncParameterizedViewModel
 {
-    private readonly WIMSDbContext _db;
+    private readonly IProductCatalogService _productService;
     private readonly INavigationService _navigation;
 
     public ObservableCollection<LookupItem> Categories { get; } = new();
@@ -179,19 +172,21 @@ public partial class ProductsDetailViewModel : BaseViewModel, IParameterizedView
     [ObservableProperty]
     private decimal _unitPrice;
 
-    public ProductsDetailViewModel(WIMSDbContext db, INavigationService navigation)
+    public ProductsDetailViewModel(IProductCatalogService productService, INavigationService navigation)
     {
-        _db = db;
+        _productService = productService;
         _navigation = navigation;
         Title = "Ürün Detayı";
-        _ = LoadLookupsAsync();
     }
 
-    public void SetParameter(object parameter)
+    public Task InitializeAsync(CancellationToken cancellationToken = default)
+        => LoadLookupsAsync(cancellationToken);
+
+    public async Task SetParameterAsync(object parameter, CancellationToken cancellationToken = default)
     {
         if (parameter is int id)
         {
-            _ = LoadProductAsync(id);
+            await LoadProductAsync(id, cancellationToken);
         }
     }
 
@@ -202,45 +197,24 @@ public partial class ProductsDetailViewModel : BaseViewModel, IParameterizedView
         {
             ClearError();
 
-            if (string.IsNullOrWhiteSpace(Code) || string.IsNullOrWhiteSpace(Name))
+            var result = await _productService.SaveProductAsync(new ProductEditModel
             {
-                SetError("Ürün kodu ve adı zorunludur.");
+                Id = Id,
+                Code = Code,
+                Name = Name,
+                Description = Description,
+                CategoryId = CategoryId,
+                UnitId = UnitId,
+                ReorderPoint = ReorderPoint,
+                UnitPrice = UnitPrice
+            });
+            if (!result.Success)
+            {
+                SetError(result.ErrorMessage ?? "Ürün kaydedilemedi.");
                 return;
             }
 
-            if (CategoryId <= 0 || UnitId <= 0)
-            {
-                SetError("Kategori ve birim seçin.");
-                return;
-            }
-
-            Product entity;
-            if (Id == 0)
-            {
-                entity = new Product { CreatedAt = DateTime.UtcNow };
-                _db.Products.Add(entity);
-            }
-            else
-            {
-                entity = await _db.Products.FirstOrDefaultAsync(p => p.Id == Id && p.IsActive)
-                    ?? throw new InvalidOperationException("Ürün bulunamadı.");
-                entity.UpdatedAt = DateTime.UtcNow;
-            }
-
-            entity.Code = Code.Trim();
-            entity.Name = Name.Trim();
-            entity.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
-            entity.CategoryId = CategoryId;
-            entity.UnitId = UnitId;
-            entity.ReorderPoint = ReorderPoint;
-            entity.UnitPrice = UnitPrice;
-
-            await _db.SaveChangesAsync();
             Close();
-        }
-        catch (DbUpdateException ex)
-        {
-            SetError($"Ürün kaydedilemedi. Kod benzersiz olmalı. {ex.InnerException?.Message ?? ex.Message}");
         }
         catch (Exception ex)
         {
@@ -251,27 +225,29 @@ public partial class ProductsDetailViewModel : BaseViewModel, IParameterizedView
     [RelayCommand]
     private void Cancel() => Close();
 
-    private async Task LoadLookupsAsync()
+    private async Task LoadLookupsAsync(CancellationToken cancellationToken = default)
     {
+        var lookups = await _productService.GetProductLookupsAsync(cancellationToken);
+
         Categories.Clear();
-        foreach (var item in await _db.Categories.AsNoTracking().Where(c => c.IsActive).OrderBy(c => c.Name).Select(c => new LookupItem(c.Id, c.Name)).ToListAsync())
+        foreach (var item in lookups.Categories)
         {
-            Categories.Add(item);
+            Categories.Add(new LookupItem(item.Id, item.Name));
         }
 
         Units.Clear();
-        foreach (var item in await _db.Units.AsNoTracking().Where(u => u.IsActive).OrderBy(u => u.Name).Select(u => new LookupItem(u.Id, $"{u.Name} ({u.Symbol})")).ToListAsync())
+        foreach (var item in lookups.Units)
         {
-            Units.Add(item);
+            Units.Add(new LookupItem(item.Id, item.Name));
         }
 
         CategoryId = CategoryId == 0 ? Categories.FirstOrDefault()?.Id ?? 0 : CategoryId;
         UnitId = UnitId == 0 ? Units.FirstOrDefault()?.Id ?? 0 : UnitId;
     }
 
-    private async Task LoadProductAsync(int id)
+    private async Task LoadProductAsync(int id, CancellationToken cancellationToken = default)
     {
-        var product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+        var product = await _productService.GetProductAsync(id, cancellationToken);
         if (product is null)
         {
             SetError("Ürün bulunamadı.");

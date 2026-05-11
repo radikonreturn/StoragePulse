@@ -17,11 +17,19 @@ public partial class StockMovementsViewModel : BaseViewModel
 
     public ObservableCollection<StockMovementRow> Movements { get; } = new();
 
+    public bool HasMovements => Movements.Count > 0;
+    public bool IsEmpty => !IsBusy && Movements.Count == 0;
+
     public StockMovementsViewModel(WIMSDbContext db, INavigationService navigation)
     {
         _db = db;
         _navigation = navigation;
         Title = "Stok İşlemleri";
+        Movements.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasMovements));
+            OnPropertyChanged(nameof(IsEmpty));
+        };
         _ = LoadMovementsAsync();
     }
 
@@ -36,6 +44,7 @@ public partial class StockMovementsViewModel : BaseViewModel
         try
         {
             IsBusy = true;
+            OnPropertyChanged(nameof(IsEmpty));
             ClearError();
 
             var rows = await _db.StockMovements
@@ -69,6 +78,7 @@ public partial class StockMovementsViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
+            OnPropertyChanged(nameof(IsEmpty));
         }
     }
 
@@ -82,10 +92,11 @@ public partial class StockMovementsViewModel : BaseViewModel
     private void ExportHistory() => SetError("Excel aktarımı için raporlama servisi sonraki adımda bağlanacak.");
 }
 
-public partial class StockEntryViewModel : BaseViewModel, IParameterizedViewModel
+public partial class StockEntryViewModel : BaseViewModel, IParameterizedViewModel, IParameterState
 {
     private readonly WIMSDbContext _db;
     private readonly INavigationService _navigation;
+    private object? _parameter;
 
     public ObservableCollection<ProductLookup> Products { get; } = new();
 
@@ -121,8 +132,11 @@ public partial class StockEntryViewModel : BaseViewModel, IParameterizedViewMode
         _ = LoadProductsAsync();
     }
 
+    public object? Parameter => _parameter;
+
     public void SetParameter(object parameter)
     {
+        _parameter = parameter;
         if (parameter is MovementType movementType)
         {
             MovementType = movementType;

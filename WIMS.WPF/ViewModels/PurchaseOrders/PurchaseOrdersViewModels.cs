@@ -20,11 +20,19 @@ public partial class PurchaseOrdersViewModel : BaseViewModel
     [ObservableProperty]
     private PurchaseOrderRow? _selectedOrder;
 
+    public bool HasOrders => Orders.Count > 0;
+    public bool IsEmpty => !IsBusy && Orders.Count == 0;
+
     public PurchaseOrdersViewModel(WIMSDbContext db, INavigationService navigation)
     {
         _db = db;
         _navigation = navigation;
         Title = "Sipariş Yönetimi";
+        Orders.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasOrders));
+            OnPropertyChanged(nameof(IsEmpty));
+        };
         _ = LoadOrdersAsync();
     }
 
@@ -33,6 +41,8 @@ public partial class PurchaseOrdersViewModel : BaseViewModel
     {
         try
         {
+            IsBusy = true;
+            OnPropertyChanged(nameof(IsEmpty));
             ClearError();
             var rows = await _db.PurchaseOrders
                 .AsNoTracking()
@@ -61,6 +71,11 @@ public partial class PurchaseOrdersViewModel : BaseViewModel
         {
             SetError($"Siparişler yüklenemedi: {ex.Message}");
         }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsEmpty));
+        }
     }
 
     [RelayCommand]
@@ -83,10 +98,11 @@ public partial class PurchaseOrdersViewModel : BaseViewModel
     private void FilterByStatus(object? status) => ClearError();
 }
 
-public partial class PurchaseOrderDetailViewModel : BaseViewModel, IParameterizedViewModel
+public partial class PurchaseOrderDetailViewModel : BaseViewModel, IParameterizedViewModel, IParameterState
 {
     private readonly WIMSDbContext _db;
     private readonly INavigationService _navigation;
+    private object? _parameter;
 
     public ObservableCollection<PurchaseOrderLineRow> Lines { get; } = new();
 
@@ -115,8 +131,11 @@ public partial class PurchaseOrderDetailViewModel : BaseViewModel, IParameterize
         Title = "Sipariş Detayı";
     }
 
+    public object? Parameter => _parameter;
+
     public void SetParameter(object parameter)
     {
+        _parameter = parameter;
         if (parameter is int id)
         {
             _ = LoadOrderAsync(id);
@@ -211,10 +230,11 @@ public partial class PurchaseOrderDetailViewModel : BaseViewModel, IParameterize
     }
 }
 
-public partial class PurchaseOrderWizardViewModel : BaseViewModel, IParameterizedViewModel
+public partial class PurchaseOrderWizardViewModel : BaseViewModel, IParameterizedViewModel, IParameterState
 {
     private readonly WIMSDbContext _db;
     private readonly INavigationService _navigation;
+    private object? _parameter;
 
     public ObservableCollection<SupplierLookup> Suppliers { get; } = new();
 
@@ -241,7 +261,9 @@ public partial class PurchaseOrderWizardViewModel : BaseViewModel, IParameterize
         _ = LoadSuppliersAsync();
     }
 
-    public void SetParameter(object parameter) { }
+    public object? Parameter => _parameter;
+
+    public void SetParameter(object parameter) => _parameter = parameter;
 
     [RelayCommand]
     private void NextStep()

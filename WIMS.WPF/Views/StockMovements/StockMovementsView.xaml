@@ -54,24 +54,38 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding ExportHistoryCommand}"/>
                 </Grid>
-                <DataGrid Grid.Row="2"
-                          ItemsSource="{Binding Movements}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tarih" Binding="{Binding MovementDate, StringFormat=dd.MM.yyyy}" Width="110"/>
-                        <DataGridTextColumn Header="Belge no" Binding="{Binding DocumentNumber}" Width="130"/>
-                        <DataGridTextColumn Header="Tip" Binding="{Binding Type}" Width="100"/>
-                        <DataGridTextColumn Header="Ürün" Binding="{Binding ProductName}" Width="*"/>
-                        <DataGridTextColumn Header="Miktar" Binding="{Binding Quantity}" Width="110"/>
-                        <DataGridTextColumn Header="Birim fiyat" Binding="{Binding UnitPrice, StringFormat=N2}" Width="120"/>
-                        <DataGridTextColumn Header="Referans" Binding="{Binding ReferenceNumber}" Width="140"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Grid Grid.Row="2">
+                    <DataGrid ItemsSource="{Binding Movements}"
+                              Visibility="{Binding HasMovements, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Tarih" Binding="{Binding MovementDate, StringFormat=dd.MM.yyyy}" Width="110"/>
+                            <DataGridTextColumn Header="Belge no" Binding="{Binding DocumentNumber}" Width="130"/>
+                            <DataGridTextColumn Header="Tip" Binding="{Binding Type}" Width="100"/>
+                            <DataGridTextColumn Header="Ürün" Binding="{Binding ProductName}" Width="*"/>
+                            <DataGridTextColumn Header="Miktar" Binding="{Binding Quantity}" Width="110"/>
+                            <DataGridTextColumn Header="Birim fiyat" Binding="{Binding UnitPrice, StringFormat=N2}" Width="120"/>
+                            <DataGridTextColumn Header="Referans" Binding="{Binding ReferenceNumber}" Width="140"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Style="{StaticResource EmptyStateStyle}"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Stok hareketi bulunamadı" Style="{StaticResource EmptyStateTitleTextStyle}"/>
+                            <TextBlock Text="İlk hareketi stok girişi veya çıkışı olarak oluşturun." Style="{StaticResource EmptyStateBodyTextStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource LoadingOverlayStyle}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Yükleniyor..." Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="1"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="{StaticResource DangerBrush}"
-                   VerticalAlignment="Center"/>
+        <Border Grid.Row="1"
+                Style="{StaticResource ErrorBannerStyle}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

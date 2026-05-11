@@ -251,4 +251,37 @@
         <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
     </Style>
 
+    <Style x:Key="ErrorBannerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource DangerLightBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <Style x:Key="EmptyStateStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource MutedSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="18" />
+        <Setter Property="MinHeight" Value="96" />
+    </Style>
+
+    <Style x:Key="LoadingOverlayStyle" TargetType="Border">
+        <Setter Property="Background" Value="#B3FFFFFF" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style x:Key="EmptyStateTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource SectionTitleTextStyle}">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="EmptyStateBodyTextStyle" TargetType="TextBlock" BasedOn="{StaticResource MutedTextStyle}">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,6,0,0" />
+    </Style>
+
 </ResourceDictionary>

@@ -59,43 +59,65 @@
                             Command="{Binding LoadProductsCommand}"/>
                 </Grid>
 
-                <DataGrid Grid.Row="2"
+                <Grid Grid.Row="2">
+                    <DataGrid
                           ItemsSource="{Binding Products}"
-                          SelectedItem="{Binding SelectedProduct, Mode=TwoWay}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="120"/>
-                        <DataGridTextColumn Header="Ürün adı" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="Kategori" Binding="{Binding CategoryName}" Width="150"/>
-                        <DataGridTextColumn Header="Birim" Binding="{Binding UnitSymbol}" Width="90"/>
-                        <DataGridTextColumn Header="Kritik seviye" Binding="{Binding ReorderPoint}" Width="120"/>
-                        <DataGridTextColumn Header="Birim fiyat" Binding="{Binding UnitPrice, StringFormat=N2}" Width="120"/>
-                        <DataGridTemplateColumn Header="İşlem" Width="150">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button Content="Düzenle"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Padding="10,4"
-                                                Command="{Binding DataContext.EditProductCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Margin="0,0,6,0"/>
-                                        <Button Content="Sil"
-                                                Style="{StaticResource DangerButtonStyle}"
-                                                Padding="10,4"
-                                                Command="{Binding DataContext.DeleteProductCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                          SelectedItem="{Binding SelectedProduct, Mode=TwoWay}"
+                          Visibility="{Binding HasProducts, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="120"/>
+                            <DataGridTextColumn Header="Ürün adı" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Kategori" Binding="{Binding CategoryName}" Width="150"/>
+                            <DataGridTextColumn Header="Birim" Binding="{Binding UnitSymbol}" Width="90"/>
+                            <DataGridTextColumn Header="Kritik seviye" Binding="{Binding ReorderPoint}" Width="120"/>
+                            <DataGridTextColumn Header="Birim fiyat" Binding="{Binding UnitPrice, StringFormat=N2}" Width="120"/>
+                            <DataGridTemplateColumn Header="İşlem" Width="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Düzenle"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Padding="10,4"
+                                                    Command="{Binding DataContext.EditProductCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="0,0,6,0"/>
+                                            <Button Content="Sil"
+                                                    Style="{StaticResource DangerButtonStyle}"
+                                                    Padding="10,4"
+                                                    Command="{Binding DataContext.DeleteProductCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Border Style="{StaticResource EmptyStateStyle}"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Ürün bulunamadı" Style="{StaticResource EmptyStateTitleTextStyle}"/>
+                            <TextBlock Text="Arama ölçütlerini değiştirin veya yeni ürün ekleyin." Style="{StaticResource EmptyStateBodyTextStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource LoadingOverlayStyle}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Yükleniyor..."
+                                   Style="{StaticResource MutedTextStyle}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="1"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="{StaticResource DangerBrush}"
-                   VerticalAlignment="Center"/>
+        <Border Grid.Row="1"
+                Style="{StaticResource ErrorBannerStyle}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="{StaticResource DangerBrush}"
+                       VerticalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

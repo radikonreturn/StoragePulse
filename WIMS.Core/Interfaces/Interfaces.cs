@@ -33,6 +33,7 @@ public interface INavigationService
     BaseViewModel? CurrentView { get; }
     void NavigateTo<TViewModel>() where TViewModel : class;
     void NavigateTo<TViewModel>(object parameter) where TViewModel : class;
+    void NavigateToRoot<TViewModel>() where TViewModel : class;
     void GoBack();
     bool CanGoBack { get; }
 }

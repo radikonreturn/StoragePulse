@@ -11,6 +11,7 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
 {
     private readonly IProductCatalogService _productService;
     private readonly INavigationService _navigation;
+    private readonly IConfirmationService _confirmationService;
     private List<ProductRow> _allProducts = new();
 
     public ObservableCollection<ProductRow> Products { get; } = new();
@@ -21,11 +22,20 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
     [ObservableProperty]
     private string? _searchText;
 
-    public ProductsViewModel(IProductCatalogService productService, INavigationService navigation)
+    public bool HasProducts => Products.Count > 0;
+    public bool IsEmpty => !IsBusy && Products.Count == 0;
+
+    public ProductsViewModel(IProductCatalogService productService, INavigationService navigation, IConfirmationService confirmationService)
     {
         _productService = productService;
         _navigation = navigation;
+        _confirmationService = confirmationService;
         Title = "Ürün Kartları";
+        Products.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasProducts));
+            OnPropertyChanged(nameof(IsEmpty));
+        };
     }
 
     public Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -42,6 +52,7 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
         try
         {
             IsBusy = true;
+            OnPropertyChanged(nameof(IsEmpty));
             ClearError();
 
             var products = await _productService.GetProductsAsync(cancellationToken);
@@ -65,6 +76,7 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
         finally
         {
             IsBusy = false;
+            OnPropertyChanged(nameof(IsEmpty));
         }
     }
 
@@ -87,6 +99,11 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
     [RelayCommand]
     private async Task DeleteProductAsync(object? product)
     {
+        if (IsBusy)
+        {
+            return;
+        }
+
         var row = product as ProductRow ?? SelectedProduct;
         if (row is null)
         {
@@ -96,7 +113,18 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
 
         try
         {
+            IsBusy = true;
             ClearError();
+            var confirmed = await _confirmationService.ConfirmAsync(
+                "Ürün silinsin mi?",
+                $"{row.Code} - {row.Name} pasif hale getirilecek. Geçmiş hareketler korunur.",
+                "Sil",
+                "Vazgeç");
+            if (!confirmed)
+            {
+                return;
+            }
+
             var result = await _productService.DeleteProductAsync(row.Id);
             if (!result.Success)
             {
@@ -109,6 +137,11 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
         catch (Exception ex)
         {
             SetError($"Ürün silinemedi: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsEmpty));
         }
     }
 
@@ -140,10 +173,11 @@ public partial class ProductsViewModel : BaseViewModel, IAsyncInitializable
     }
 }
 
-public partial class ProductsDetailViewModel : BaseViewModel, IAsyncInitializable, IAsyncParameterizedViewModel
+public partial class ProductsDetailViewModel : BaseViewModel, IAsyncInitializable, IAsyncParameterizedViewModel, IParameterState
 {
     private readonly IProductCatalogService _productService;
     private readonly INavigationService _navigation;
+    private object? _parameter;
 
     public ObservableCollection<LookupItem> Categories { get; } = new();
     public ObservableCollection<LookupItem> Units { get; } = new();
@@ -182,8 +216,11 @@ public partial class ProductsDetailViewModel : BaseViewModel, IAsyncInitializabl
     public Task InitializeAsync(CancellationToken cancellationToken = default)
         => LoadLookupsAsync(cancellationToken);
 
+    public object? Parameter => _parameter;
+
     public async Task SetParameterAsync(object parameter, CancellationToken cancellationToken = default)
     {
+        _parameter = parameter;
         if (parameter is int id)
         {
             await LoadProductAsync(id, cancellationToken);
@@ -193,8 +230,14 @@ public partial class ProductsDetailViewModel : BaseViewModel, IAsyncInitializabl
     [RelayCommand]
     private async Task SaveAsync()
     {
+        if (IsBusy)
+        {
+            return;
+        }
+
         try
         {
+            IsBusy = true;
             ClearError();
 
             var result = await _productService.SaveProductAsync(new ProductEditModel
@@ -219,6 +262,10 @@ public partial class ProductsDetailViewModel : BaseViewModel, IAsyncInitializabl
         catch (Exception ex)
         {
             SetError($"Ürün kaydedilemedi: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 

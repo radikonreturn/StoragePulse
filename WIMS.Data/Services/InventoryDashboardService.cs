@@ -25,9 +25,9 @@ public sealed class InventoryDashboardService : IInventoryDashboardService
                 UnitSymbol = p.Unit.Symbol,
                 UnitPrice = p.UnitPrice,
                 ReorderPoint = p.ReorderPoint,
-                CurrentStock = p.StockMovements
+                CurrentStock = (decimal)p.StockMovements
                     .Where(m => m.IsActive)
-                    .Sum(m => m.Type == MovementType.Inbound ? m.Quantity : -m.Quantity)
+                    .Sum(m => m.Type == MovementType.Inbound ? (double)m.Quantity : -(double)m.Quantity)
             })
             .ToListAsync(cancellationToken);
 

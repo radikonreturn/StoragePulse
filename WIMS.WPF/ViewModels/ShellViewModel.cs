@@ -43,17 +43,17 @@ public partial class ShellViewModel : BaseViewModel
             observableNavigation.PropertyChanged += OnNavigationPropertyChanged;
         }
 
-        Navigation.NavigateTo<DashboardViewModel>();
+        Navigation.NavigateToRoot<DashboardViewModel>();
         SyncSelectedNavigationItem();
     }
 
-    [RelayCommand] private void NavigateDashboard() => Navigation.NavigateTo<DashboardViewModel>();
-    [RelayCommand] private void NavigateProducts() => Navigation.NavigateTo<ProductsViewModel>();
-    [RelayCommand] private void NavigateStockMovements() => Navigation.NavigateTo<StockMovementsViewModel>();
-    [RelayCommand] private void NavigateSuppliers() => Navigation.NavigateTo<SuppliersViewModel>();
-    [RelayCommand] private void NavigatePurchaseOrders() => Navigation.NavigateTo<PurchaseOrdersViewModel>();
-    [RelayCommand] private void NavigateReports() => Navigation.NavigateTo<ReportsViewModel>();
-    [RelayCommand] private void NavigateSettings() => Navigation.NavigateTo<SettingsViewModel>();
+    [RelayCommand] private void NavigateDashboard() => Navigation.NavigateToRoot<DashboardViewModel>();
+    [RelayCommand] private void NavigateProducts() => Navigation.NavigateToRoot<ProductsViewModel>();
+    [RelayCommand] private void NavigateStockMovements() => Navigation.NavigateToRoot<StockMovementsViewModel>();
+    [RelayCommand] private void NavigateSuppliers() => Navigation.NavigateToRoot<SuppliersViewModel>();
+    [RelayCommand] private void NavigatePurchaseOrders() => Navigation.NavigateToRoot<PurchaseOrdersViewModel>();
+    [RelayCommand] private void NavigateReports() => Navigation.NavigateToRoot<ReportsViewModel>();
+    [RelayCommand] private void NavigateSettings() => Navigation.NavigateToRoot<SettingsViewModel>();
     [RelayCommand] private void GoBack() => Navigation.GoBack();
 
     partial void OnSelectedNavigationItemChanged(ShellNavigationItem? value)
@@ -97,31 +97,31 @@ public partial class ShellViewModel : BaseViewModel
     {
         if (item.ViewModelType == typeof(DashboardViewModel))
         {
-            Navigation.NavigateTo<DashboardViewModel>();
+            Navigation.NavigateToRoot<DashboardViewModel>();
         }
         else if (item.ViewModelType == typeof(ProductsViewModel))
         {
-            Navigation.NavigateTo<ProductsViewModel>();
+            Navigation.NavigateToRoot<ProductsViewModel>();
         }
         else if (item.ViewModelType == typeof(StockMovementsViewModel))
         {
-            Navigation.NavigateTo<StockMovementsViewModel>();
+            Navigation.NavigateToRoot<StockMovementsViewModel>();
         }
         else if (item.ViewModelType == typeof(SuppliersViewModel))
         {
-            Navigation.NavigateTo<SuppliersViewModel>();
+            Navigation.NavigateToRoot<SuppliersViewModel>();
         }
         else if (item.ViewModelType == typeof(PurchaseOrdersViewModel))
         {
-            Navigation.NavigateTo<PurchaseOrdersViewModel>();
+            Navigation.NavigateToRoot<PurchaseOrdersViewModel>();
         }
         else if (item.ViewModelType == typeof(ReportsViewModel))
         {
-            Navigation.NavigateTo<ReportsViewModel>();
+            Navigation.NavigateToRoot<ReportsViewModel>();
         }
         else if (item.ViewModelType == typeof(SettingsViewModel))
         {
-            Navigation.NavigateTo<SettingsViewModel>();
+            Navigation.NavigateToRoot<SettingsViewModel>();
         }
     }
 }

@@ -53,42 +53,64 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding LoadSuppliersCommand}"/>
                 </Grid>
-                <DataGrid Grid.Row="2"
+                <Grid Grid.Row="2">
+                    <DataGrid
                           ItemsSource="{Binding Suppliers}"
-                          SelectedItem="{Binding SelectedSupplier, Mode=TwoWay}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="120"/>
-                        <DataGridTextColumn Header="Tedarikçi" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="Yetkili" Binding="{Binding ContactName}" Width="160"/>
-                        <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="140"/>
-                        <DataGridTextColumn Header="E-posta" Binding="{Binding Email}" Width="210"/>
-                        <DataGridTemplateColumn Header="İşlem" Width="150">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button Content="Düzenle"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Padding="10,4"
-                                                Command="{Binding DataContext.EditSupplierCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Margin="0,0,6,0"/>
-                                        <Button Content="Sil"
-                                                Style="{StaticResource DangerButtonStyle}"
-                                                Padding="10,4"
-                                                Command="{Binding DataContext.DeleteSupplierCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                          SelectedItem="{Binding SelectedSupplier, Mode=TwoWay}"
+                          Visibility="{Binding HasSuppliers, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="120"/>
+                            <DataGridTextColumn Header="Tedarikçi" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Yetkili" Binding="{Binding ContactName}" Width="160"/>
+                            <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="140"/>
+                            <DataGridTextColumn Header="E-posta" Binding="{Binding Email}" Width="210"/>
+                            <DataGridTemplateColumn Header="İşlem" Width="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Düzenle"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Padding="10,4"
+                                                    Command="{Binding DataContext.EditSupplierCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="0,0,6,0"/>
+                                            <Button Content="Sil"
+                                                    Style="{StaticResource DangerButtonStyle}"
+                                                    Padding="10,4"
+                                                    Command="{Binding DataContext.DeleteSupplierCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Border Style="{StaticResource EmptyStateStyle}"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Tedarikçi bulunamadı" Style="{StaticResource EmptyStateTitleTextStyle}"/>
+                            <TextBlock Text="Arama ölçütlerini değiştirin veya yeni tedarikçi ekleyin." Style="{StaticResource EmptyStateBodyTextStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource LoadingOverlayStyle}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Yükleniyor..."
+                                   Style="{StaticResource MutedTextStyle}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="1"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="{StaticResource DangerBrush}"
-                   VerticalAlignment="Center"/>
+        <Border Grid.Row="1"
+                Style="{StaticResource ErrorBannerStyle}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="{StaticResource DangerBrush}"
+                       VerticalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

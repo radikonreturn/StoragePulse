@@ -44,6 +44,7 @@ public partial class App : System.Windows.Application
         services.AddScoped<ISupplierCatalogService, SupplierCatalogService>();
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IConfirmationService, ConfirmationService>();
         services.AddSingleton<IMapperService, MapperService>();
         services.AddSingleton<IReportService, ReportService>();
 
@@ -92,7 +93,63 @@ public partial class App : System.Windows.Application
     {
         using var scope = serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<WIMSDbContext>();
+        await StampExistingEnsureCreatedDatabaseAsync(db);
         await db.Database.MigrateAsync();
         await DatabaseSeeder.SeedAsync(db);
+    }
+
+    private static async Task StampExistingEnsureCreatedDatabaseAsync(WIMSDbContext db)
+    {
+        if (!await db.Database.CanConnectAsync())
+        {
+            return;
+        }
+
+        var connection = db.Database.GetDbConnection();
+        await db.Database.OpenConnectionAsync();
+
+        try
+        {
+            if (!await TableExistsAsync(connection, "Products") || await TableExistsAsync(connection, "__EFMigrationsHistory"))
+            {
+                return;
+            }
+
+            await ExecuteNonQueryAsync(connection, """
+                CREATE TABLE "__EFMigrationsHistory" (
+                    "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+                    "ProductVersion" TEXT NOT NULL
+                );
+                """);
+
+            await ExecuteNonQueryAsync(connection, """
+                INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+                VALUES ('20260512000000_InitialCreate', '8.0.11');
+                """);
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
+    }
+
+    private static async Task<bool> TableExistsAsync(System.Data.Common.DbConnection connection, string tableName)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = $tableName;";
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "$tableName";
+        parameter.Value = tableName;
+        command.Parameters.Add(parameter);
+
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(result) > 0;
+    }
+
+    private static async Task ExecuteNonQueryAsync(System.Data.Common.DbConnection connection, string commandText)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = commandText;
+        await command.ExecuteNonQueryAsync();
     }
 }

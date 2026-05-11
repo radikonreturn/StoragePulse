@@ -7,7 +7,7 @@ namespace WIMS.WPF.Services;
 public partial class NavigationService : ObservableObject, INavigationService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly Stack<Type> _navigationStack = new();
+    private readonly Stack<NavigationEntry> _navigationStack = new();
 
     [ObservableProperty]
     private BaseViewModel? _currentView;
@@ -20,21 +20,37 @@ public partial class NavigationService : ObservableObject, INavigationService
     }
 
     public void NavigateTo<TViewModel>() where TViewModel : class
-        => NavigateToCore<TViewModel>(null);
+        => NavigateToCore<TViewModel>(null, isTopLevel: false, clearHistory: false);
 
     public void NavigateTo<TViewModel>(object parameter) where TViewModel : class
-        => NavigateToCore<TViewModel>(parameter);
+        => NavigateToCore<TViewModel>(parameter, isTopLevel: false, clearHistory: false);
 
-    private void NavigateToCore<TViewModel>(object? parameter) where TViewModel : class
+    public void NavigateToRoot<TViewModel>() where TViewModel : class
+        => NavigateToCore<TViewModel>(null, isTopLevel: true, clearHistory: true);
+
+    private void NavigateToCore<TViewModel>(object? parameter, bool isTopLevel, bool clearHistory) where TViewModel : class
     {
         var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
         if (viewModel is BaseViewModel baseVm)
         {
-            if (CurrentView?.GetType() == baseVm.GetType())
-                return;
+            if (clearHistory)
+            {
+                _navigationStack.Clear();
+                OnPropertyChanged(nameof(CanGoBack));
+            }
 
-            if (CurrentView != null)
-                _navigationStack.Push(CurrentView.GetType());
+            if (CurrentView?.GetType() == baseVm.GetType())
+            {
+                if (parameter is not null && CurrentView is not null)
+                {
+                    _ = InitializeViewAsync(CurrentView, parameter);
+                }
+
+                return;
+            }
+
+            if (CurrentView != null && !clearHistory)
+                _navigationStack.Push(new NavigationEntry(CurrentView.GetType(), GetCurrentParameter(CurrentView), IsTopLevel: false));
 
             CurrentView = baseVm;
             OnPropertyChanged(nameof(CanGoBack));
@@ -46,16 +62,19 @@ public partial class NavigationService : ObservableObject, INavigationService
     {
         if (_navigationStack.Count > 0)
         {
-            var previousType = _navigationStack.Pop();
-            var vm = _serviceProvider.GetRequiredService(previousType);
+            var previousEntry = _navigationStack.Pop();
+            var vm = _serviceProvider.GetRequiredService(previousEntry.ViewModelType);
             CurrentView = vm as BaseViewModel;
             OnPropertyChanged(nameof(CanGoBack));
             if (CurrentView is not null)
             {
-                _ = InitializeViewAsync(CurrentView, null);
+                _ = InitializeViewAsync(CurrentView, previousEntry.Parameter);
             }
         }
     }
+
+    private static object? GetCurrentParameter(BaseViewModel viewModel)
+        => viewModel is IParameterState parameterState ? parameterState.Parameter : null;
 
     private static async Task InitializeViewAsync(BaseViewModel viewModel, object? parameter)
     {
@@ -94,3 +113,10 @@ public interface IAsyncParameterizedViewModel
 {
     Task SetParameterAsync(object parameter, CancellationToken cancellationToken = default);
 }
+
+public interface IParameterState
+{
+    object? Parameter { get; }
+}
+
+public sealed record NavigationEntry(Type ViewModelType, object? Parameter, bool IsTopLevel);

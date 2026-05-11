@@ -47,35 +47,49 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding LoadOrdersCommand}"/>
                 </Grid>
-                <DataGrid Grid.Row="2"
-                          ItemsSource="{Binding Orders}"
-                          SelectedItem="{Binding SelectedOrder, Mode=TwoWay}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Sipariş no" Binding="{Binding OrderNumber}" Width="150"/>
-                        <DataGridTextColumn Header="Tedarikçi" Binding="{Binding SupplierName}" Width="*"/>
-                        <DataGridTextColumn Header="Tarih" Binding="{Binding OrderDate, StringFormat=dd.MM.yyyy}" Width="110"/>
-                        <DataGridTextColumn Header="Durum" Binding="{Binding Status}" Width="120"/>
-                        <DataGridTextColumn Header="Teslim tarihi" Binding="{Binding ExpectedDeliveryDate, StringFormat=dd.MM.yyyy}" Width="130"/>
-                        <DataGridTextColumn Header="Tutar" Binding="{Binding TotalAmount, StringFormat=N2}" Width="120"/>
-                        <DataGridTemplateColumn Header="İşlem" Width="100">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="Aç"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Padding="12,4"
-                                            Command="{Binding DataContext.ViewOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                            CommandParameter="{Binding}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Grid Grid.Row="2">
+                    <DataGrid ItemsSource="{Binding Orders}"
+                              SelectedItem="{Binding SelectedOrder, Mode=TwoWay}"
+                              Visibility="{Binding HasOrders, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Sipariş no" Binding="{Binding OrderNumber}" Width="150"/>
+                            <DataGridTextColumn Header="Tedarikçi" Binding="{Binding SupplierName}" Width="*"/>
+                            <DataGridTextColumn Header="Tarih" Binding="{Binding OrderDate, StringFormat=dd.MM.yyyy}" Width="110"/>
+                            <DataGridTextColumn Header="Durum" Binding="{Binding Status}" Width="120"/>
+                            <DataGridTextColumn Header="Teslim tarihi" Binding="{Binding ExpectedDeliveryDate, StringFormat=dd.MM.yyyy}" Width="130"/>
+                            <DataGridTextColumn Header="Tutar" Binding="{Binding TotalAmount, StringFormat=N2}" Width="120"/>
+                            <DataGridTemplateColumn Header="İşlem" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Aç"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="12,4"
+                                                Command="{Binding DataContext.ViewOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Style="{StaticResource EmptyStateStyle}"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Sipariş bulunamadı" Style="{StaticResource EmptyStateTitleTextStyle}"/>
+                            <TextBlock Text="Yeni sipariş oluşturarak satın alma sürecini başlatın." Style="{StaticResource EmptyStateBodyTextStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource LoadingOverlayStyle}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Yükleniyor..." Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="1"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="{StaticResource DangerBrush}"
-                   VerticalAlignment="Center"/>
+        <Border Grid.Row="1"
+                Style="{StaticResource ErrorBannerStyle}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center"/>
+        </Border>
     </Grid>
 </UserControl>

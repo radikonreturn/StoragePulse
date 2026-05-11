@@ -35,12 +35,19 @@ public partial class ReportsViewModel : BaseViewModel
     public bool IsMovementHistorySelected => SelectedReport == ReportKind.MovementHistory;
     public bool IsLowStockSelected => SelectedReport == ReportKind.LowStock;
     public bool HasReport => SelectedReport != ReportKind.None;
+    public bool IsReportEmpty => HasReport
+        && ((IsStockValuationSelected && StockValuationRows.Count == 0)
+            || (IsMovementHistorySelected && MovementRows.Count == 0)
+            || (IsLowStockSelected && LowStockRows.Count == 0));
 
     public ReportsViewModel(WIMSDbContext db, IReportService reportService)
     {
         _db = db;
         _reportService = reportService;
         Title = "Raporlama";
+        StockValuationRows.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsReportEmpty));
+        MovementRows.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsReportEmpty));
+        LowStockRows.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsReportEmpty));
     }
 
     [RelayCommand]
@@ -48,6 +55,7 @@ public partial class ReportsViewModel : BaseViewModel
     {
         try
         {
+            IsBusy = true;
             ClearError();
             SelectedReport = ReportKind.StockValuation;
             ReportTitle = "Stok değerleme";
@@ -66,6 +74,11 @@ public partial class ReportsViewModel : BaseViewModel
         {
             SetError($"Stok değerleme raporu yüklenemedi: {ex.Message}");
         }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsReportEmpty));
+        }
     }
 
     [RelayCommand]
@@ -73,6 +86,7 @@ public partial class ReportsViewModel : BaseViewModel
     {
         try
         {
+            IsBusy = true;
             ClearError();
             SelectedReport = ReportKind.MovementHistory;
             ReportTitle = "Hareket geçmişi";
@@ -113,6 +127,11 @@ public partial class ReportsViewModel : BaseViewModel
         {
             SetError($"Hareket geçmişi raporu yüklenemedi: {ex.Message}");
         }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsReportEmpty));
+        }
     }
 
     [RelayCommand]
@@ -120,6 +139,7 @@ public partial class ReportsViewModel : BaseViewModel
     {
         try
         {
+            IsBusy = true;
             ClearError();
             SelectedReport = ReportKind.LowStock;
             ReportTitle = "Düşük stok";
@@ -137,6 +157,11 @@ public partial class ReportsViewModel : BaseViewModel
         catch (Exception ex)
         {
             SetError($"Düşük stok raporu yüklenemedi: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsReportEmpty));
         }
     }
 
@@ -196,6 +221,7 @@ public partial class ReportsViewModel : BaseViewModel
         OnPropertyChanged(nameof(IsMovementHistorySelected));
         OnPropertyChanged(nameof(IsLowStockSelected));
         OnPropertyChanged(nameof(HasReport));
+        OnPropertyChanged(nameof(IsReportEmpty));
     }
 
     private async Task<List<ProductDto>> QueryProductsAsync(bool includeOnlyLowStock)

@@ -106,12 +106,13 @@ public sealed class ProductCatalogService : IProductCatalogService
         }
         else
         {
-            entity = await _db.Products.FirstOrDefaultAsync(p => p.Id == model.Id && p.IsActive, cancellationToken);
-            if (entity is null)
+            var existing = await _db.Products.FirstOrDefaultAsync(p => p.Id == model.Id && p.IsActive, cancellationToken);
+            if (existing is null)
             {
                 return ServiceResult.Fail("Ürün bulunamadı.");
             }
 
+            entity = existing;
             entity.UpdatedAt = DateTime.UtcNow;
         }
 
@@ -211,12 +212,13 @@ public sealed class SupplierCatalogService : ISupplierCatalogService
         }
         else
         {
-            entity = await _db.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id && s.IsActive, cancellationToken);
-            if (entity is null)
+            var existing = await _db.Suppliers.FirstOrDefaultAsync(s => s.Id == model.Id && s.IsActive, cancellationToken);
+            if (existing is null)
             {
                 return ServiceResult.Fail("Tedarikçi bulunamadı.");
             }
 
+            entity = existing;
             entity.UpdatedAt = DateTime.UtcNow;
         }
 

@@ -47,6 +47,11 @@
                             Style="{StaticResource PrimaryButtonStyle}"
                             Command="{Binding SaveSettingsCommand}"
                             HorizontalAlignment="Left"/>
+                    <Border Grid.RowSpan="9"
+                            Style="{StaticResource LoadingOverlayStyle}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Yükleniyor..." Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -63,10 +68,13 @@
                     <Button Content="Yedekten dön"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding RestoreDatabaseCommand}"/>
-                    <TextBlock Text="{Binding ErrorMessage}"
-                               Foreground="{StaticResource DangerBrush}"
-                               Margin="0,16,0,0"
-                               TextWrapping="Wrap"/>
+                    <Border Style="{StaticResource ErrorBannerStyle}"
+                            Margin="0,16,0,0"
+                            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{StaticResource DangerBrush}"
+                                   TextWrapping="Wrap"/>
+                    </Border>
                 </StackPanel>
             </Border>
         </Grid>

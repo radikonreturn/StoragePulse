@@ -34,6 +34,9 @@ public partial class DashboardViewModel : BaseViewModel
     public ObservableCollection<DashboardLowStockItem> LowStockItems { get; } = new();
     public ObservableCollection<DashboardMovementItem> RecentMovements { get; } = new();
 
+    public bool HasLowStockItems => LowStockItems.Count > 0;
+    public bool HasRecentMovements => RecentMovements.Count > 0;
+
     public string TotalStockValueText => TotalStockValue.ToString("C2", CultureInfo.CurrentCulture);
     public string LastRefreshedText => LastRefreshedAt is null ? "Henüz yenilenmedi" : LastRefreshedAt.Value.ToString("dd.MM.yyyy HH:mm");
 
@@ -41,6 +44,8 @@ public partial class DashboardViewModel : BaseViewModel
     {
         _dashboardService = dashboardService;
         Title = "Gösterge Paneli";
+        LowStockItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasLowStockItems));
+        RecentMovements.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentMovements));
         _ = LoadDataAsync();
     }
 

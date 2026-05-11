@@ -124,7 +124,7 @@
                         CornerRadius="8"
                         Background="{StaticResource SidebarDarkerBrush}">
                     <StackPanel>
-                        <TextBlock Text="WIMS v1.0"
+                        <TextBlock Text="StoragePulse v1.0.0"
                                    Foreground="{StaticResource TextInverseBrush}"
                                    FontWeight="SemiBold"
                                    FontSize="12"/>

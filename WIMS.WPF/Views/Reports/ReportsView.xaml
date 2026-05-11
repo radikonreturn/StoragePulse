@@ -2,10 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{StaticResource ContentBackgroundBrush}">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-    </UserControl.Resources>
-
     <Grid Margin="28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -128,12 +124,27 @@
                             <DataGridTextColumn Header="Durum" Binding="{Binding StockStatus}" Width="120"/>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <Border Style="{StaticResource EmptyStateStyle}"
+                            Visibility="{Binding IsReportEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Rapor verisi bulunamadı" Style="{StaticResource EmptyStateTitleTextStyle}"/>
+                            <TextBlock Text="Seçilen rapor için gösterilecek kayıt yok." Style="{StaticResource EmptyStateBodyTextStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource LoadingOverlayStyle}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Yükleniyor..." Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                 </Grid>
 
-                <TextBlock Grid.Row="3"
-                           Text="{Binding ErrorMessage}"
-                           Foreground="{StaticResource DangerBrush}"
-                           Margin="0,12,0,0"/>
+                <Border Grid.Row="3"
+                        Style="{StaticResource ErrorBannerStyle}"
+                        Margin="0,12,0,0"
+                        Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"/>
+                </Border>
             </Grid>
         </Border>
     </Grid>

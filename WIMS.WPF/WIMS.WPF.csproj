@@ -5,6 +5,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <AssemblyName>StoragePulse</AssemblyName>
+    <RootNamespace>WIMS.WPF</RootNamespace>
+    <Product>StoragePulse</Product>
+    <Title>StoragePulse</Title>
+    <Authors>StoragePulse</Authors>
+    <Company>StoragePulse</Company>
+    <Description>Offline-first warehouse inventory management desktop application.</Description>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />

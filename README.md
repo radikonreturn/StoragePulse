@@ -78,6 +78,66 @@ The application currently ships with a Turkish-language UI and is structured to 
 
 ---
 
+## End-User Install
+
+StoragePulse is a Windows desktop app. For a normal user, publish the app as a self-contained Windows x64 folder and share the generated folder as a zip file.
+
+```bash
+dotnet publish WIMS.WPF -p:PublishProfile=Windows-x64-Folder
+```
+
+The release output is created under:
+
+```text
+WIMS.WPF/bin/Release/net8.0-windows/publish/win-x64/
+```
+
+Users run:
+
+```text
+StoragePulse.exe
+```
+
+No separate database server is required.
+
+## User Data
+
+StoragePulse stores its local SQLite database at:
+
+```text
+%LOCALAPPDATA%\WIMS\wims.db
+```
+
+The database is created automatically on first launch with only baseline lookup data such as categories and units. It does not create demo products, suppliers, stock movements, or purchase orders. Existing local data is preserved during normal app updates.
+
+## Backup and Restore
+
+Open **Ayarlar > Veritabanı**:
+
+- **Yedek al** creates a `.db` backup file chosen by the user.
+- **Yedekten dön** restores from a selected `.db` file.
+- Restore creates a safety copy of the current database before replacing it.
+- After restore, close and reopen StoragePulse.
+
+## Release Checklist
+
+Before sharing a build with users:
+
+```bash
+dotnet.exe build WIMS.sln
+dotnet.exe publish WIMS.WPF -p:PublishProfile=Windows-x64-Folder
+```
+
+Then verify:
+
+- The app opens from the publish folder.
+- Dashboard loads without a database error.
+- Product and supplier delete confirmations appear.
+- Settings backup creates a readable `.db` file.
+- Restore shows the restart message after copying a selected backup.
+
+---
+
 <div align="center">
 
 *StoragePulse — because knowing what you have is the first step to running a great business.*

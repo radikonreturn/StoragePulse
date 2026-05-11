@@ -11,6 +11,7 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
 {
     private readonly ISupplierCatalogService _supplierService;
     private readonly INavigationService _navigation;
+    private readonly IConfirmationService _confirmationService;
     private List<SupplierRow> _allSuppliers = new();
 
     public ObservableCollection<SupplierRow> Suppliers { get; } = new();
@@ -21,11 +22,20 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
     [ObservableProperty]
     private string? _searchText;
 
-    public SuppliersViewModel(ISupplierCatalogService supplierService, INavigationService navigation)
+    public bool HasSuppliers => Suppliers.Count > 0;
+    public bool IsEmpty => !IsBusy && Suppliers.Count == 0;
+
+    public SuppliersViewModel(ISupplierCatalogService supplierService, INavigationService navigation, IConfirmationService confirmationService)
     {
         _supplierService = supplierService;
         _navigation = navigation;
+        _confirmationService = confirmationService;
         Title = "Tedarikçiler";
+        Suppliers.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasSuppliers));
+            OnPropertyChanged(nameof(IsEmpty));
+        };
     }
 
     public Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -42,6 +52,7 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
         try
         {
             IsBusy = true;
+            OnPropertyChanged(nameof(IsEmpty));
             ClearError();
 
             var suppliers = await _supplierService.GetSuppliersAsync(cancellationToken);
@@ -65,6 +76,7 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
         finally
         {
             IsBusy = false;
+            OnPropertyChanged(nameof(IsEmpty));
         }
     }
 
@@ -87,6 +99,11 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
     [RelayCommand]
     private async Task DeleteSupplierAsync(object? supplier)
     {
+        if (IsBusy)
+        {
+            return;
+        }
+
         var row = supplier as SupplierRow ?? SelectedSupplier;
         if (row is null)
         {
@@ -96,7 +113,18 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
 
         try
         {
+            IsBusy = true;
             ClearError();
+            var confirmed = await _confirmationService.ConfirmAsync(
+                "Tedarikçi silinsin mi?",
+                $"{row.Code} - {row.Name} pasif hale getirilecek. Geçmiş siparişler korunur.",
+                "Sil",
+                "Vazgeç");
+            if (!confirmed)
+            {
+                return;
+            }
+
             var result = await _supplierService.DeleteSupplierAsync(row.Id);
             if (!result.Success)
             {
@@ -109,6 +137,11 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
         catch (Exception ex)
         {
             SetError($"Tedarikçi silinemedi: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsEmpty));
         }
     }
 
@@ -134,10 +167,11 @@ public partial class SuppliersViewModel : BaseViewModel, IAsyncInitializable
     }
 }
 
-public partial class SuppliersDetailViewModel : BaseViewModel, IAsyncParameterizedViewModel
+public partial class SuppliersDetailViewModel : BaseViewModel, IAsyncParameterizedViewModel, IParameterState
 {
     private readonly ISupplierCatalogService _supplierService;
     private readonly INavigationService _navigation;
+    private object? _parameter;
 
     [ObservableProperty]
     private int _id;
@@ -170,8 +204,11 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IAsyncParameteriz
         Title = "Tedarikçi Detayı";
     }
 
+    public object? Parameter => _parameter;
+
     public async Task SetParameterAsync(object parameter, CancellationToken cancellationToken = default)
     {
+        _parameter = parameter;
         if (parameter is int id)
         {
             await LoadSupplierAsync(id, cancellationToken);
@@ -181,8 +218,14 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IAsyncParameteriz
     [RelayCommand]
     private async Task SaveAsync()
     {
+        if (IsBusy)
+        {
+            return;
+        }
+
         try
         {
+            IsBusy = true;
             ClearError();
 
             var result = await _supplierService.SaveSupplierAsync(new SupplierEditModel
@@ -207,6 +250,10 @@ public partial class SuppliersDetailViewModel : BaseViewModel, IAsyncParameteriz
         catch (Exception ex)
         {
             SetError($"Tedarikçi kaydedilemedi: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 

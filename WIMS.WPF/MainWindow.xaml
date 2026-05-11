@@ -1,0 +1,186 @@
+<Window x:Class="WIMS.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:WIMS.WPF"
+        xmlns:dashboardvm="clr-namespace:WIMS.WPF.ViewModels.Dashboard"
+        xmlns:productsvm="clr-namespace:WIMS.WPF.ViewModels.Products"
+        xmlns:stockvm="clr-namespace:WIMS.WPF.ViewModels.StockMovements"
+        xmlns:suppliersvm="clr-namespace:WIMS.WPF.ViewModels.Suppliers"
+        xmlns:ordersvm="clr-namespace:WIMS.WPF.ViewModels.PurchaseOrders"
+        xmlns:reportsvm="clr-namespace:WIMS.WPF.ViewModels.Reports"
+        xmlns:settingsvm="clr-namespace:WIMS.WPF.ViewModels.Settings"
+        xmlns:dashboard="clr-namespace:WIMS.WPF.Views.Dashboard"
+        xmlns:products="clr-namespace:WIMS.WPF.Views.Products"
+        xmlns:stock="clr-namespace:WIMS.WPF.Views.StockMovements"
+        xmlns:suppliers="clr-namespace:WIMS.WPF.Views.Suppliers"
+        xmlns:orders="clr-namespace:WIMS.WPF.Views.PurchaseOrders"
+        xmlns:reports="clr-namespace:WIMS.WPF.Views.Reports"
+        xmlns:settings="clr-namespace:WIMS.WPF.Views.Settings"
+        Title="StoragePulse"
+        Height="820" Width="1320"
+        MinHeight="680" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        Icon="Assets/storagepulse-icon.png"
+        Background="{StaticResource ContentBackgroundBrush}">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type dashboardvm:DashboardViewModel}">
+            <dashboard:DashboardView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type productsvm:ProductsViewModel}">
+            <products:ProductsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type productsvm:ProductsDetailViewModel}">
+            <products:ProductsDetailView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type stockvm:StockMovementsViewModel}">
+            <stock:StockMovementsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type stockvm:StockEntryViewModel}">
+            <stock:StockEntryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type suppliersvm:SuppliersViewModel}">
+            <suppliers:SuppliersView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type suppliersvm:SuppliersDetailViewModel}">
+            <suppliers:SuppliersDetailView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ordersvm:PurchaseOrdersViewModel}">
+            <orders:PurchaseOrdersView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ordersvm:PurchaseOrderDetailViewModel}">
+            <orders:PurchaseOrderDetailView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ordersvm:PurchaseOrderWizardViewModel}">
+            <orders:PurchaseOrderWizardView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type reportsvm:ReportsViewModel}">
+            <reports:ReportsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type settingsvm:SettingsViewModel}">
+            <settings:SettingsView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="264"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="112"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Margin="20,20,20,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="44" Height="44" CornerRadius="10"
+                            Background="{StaticResource AccentBrush}">
+                        <TextBlock Text="SP"
+                                   Foreground="{StaticResource TextInverseBrush}"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="12,2,0,0">
+                        <TextBlock Text="StoragePulse"
+                                   Foreground="{StaticResource TextInverseBrush}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="Depo yönetimi"
+                                   Foreground="#9CA3AF"
+                                   FontSize="12"
+                                   Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding NavigationItems}"
+                         SelectedItem="{Binding SelectedNavigationItem, Mode=TwoWay}"
+                         Style="{StaticResource NavigationListBoxStyle}"
+                         ItemContainerStyle="{StaticResource NavigationItemStyle}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Title}"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
+                                       FontWeight="SemiBold"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Border Grid.Row="2"
+                        Margin="16"
+                        Padding="14"
+                        CornerRadius="8"
+                        Background="{StaticResource SidebarDarkerBrush}">
+                    <StackPanel>
+                        <TextBlock Text="WIMS v1.0"
+                                   Foreground="{StaticResource TextInverseBrush}"
+                                   FontWeight="SemiBold"
+                                   FontSize="12"/>
+                        <TextBlock Text="SQLite yerel veritabanı"
+                                   Foreground="#9CA3AF"
+                                   FontSize="11"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="74"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{StaticResource CardBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                <Grid Margin="28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="‹"
+                            Style="{StaticResource IconButtonStyle}"
+                            Command="{Binding GoBackCommand}"
+                            IsEnabled="{Binding Navigation.CanGoBack}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,14,0"/>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Navigation.CurrentView.Title}"
+                                   Style="{StaticResource HeaderTextStyle}"/>
+                        <TextBlock Text="Stok, satın alma ve tedarik süreçleri"
+                                   Style="{StaticResource MutedTextStyle}"
+                                   Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <Border Grid.Column="2"
+                            Background="{StaticResource MutedSurfaceBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12,8"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="Yerel çalışma alanı"
+                                   Style="{StaticResource MutedTextStyle}"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <ContentControl Grid.Row="1" Content="{Binding Navigation.CurrentView}"/>
+        </Grid>
+    </Grid>
+</Window>

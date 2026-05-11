@@ -1,0 +1,94 @@
+<UserControl x:Class="WIMS.WPF.Views.Suppliers.SuppliersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource ContentBackgroundBrush}">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="18"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource PanelStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Tedarikçi yönetimi" Style="{StaticResource SubHeaderTextStyle}"/>
+                    <TextBlock Text="Satın alma süreçleri için tedarikçi kartlarını ve iletişim bilgilerini tutun."
+                               Style="{StaticResource MutedTextStyle}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="Yeni tedarikçi"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding AddSupplierCommand}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource PanelStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Tedarikçi listesi" Style="{StaticResource SectionTitleTextStyle}"/>
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource StandardTextBoxStyle}"
+                             ToolTip="Tedarikçi ara"/>
+                    <Button Grid.Column="3"
+                            Content="Yenile"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding LoadSuppliersCommand}"/>
+                </Grid>
+                <DataGrid Grid.Row="2"
+                          ItemsSource="{Binding Suppliers}"
+                          SelectedItem="{Binding SelectedSupplier, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="120"/>
+                        <DataGridTextColumn Header="Tedarikçi" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Yetkili" Binding="{Binding ContactName}" Width="160"/>
+                        <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="140"/>
+                        <DataGridTextColumn Header="E-posta" Binding="{Binding Email}" Width="210"/>
+                        <DataGridTemplateColumn Header="İşlem" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Düzenle"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="10,4"
+                                                Command="{Binding DataContext.EditSupplierCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Margin="0,0,6,0"/>
+                                        <Button Content="Sil"
+                                                Style="{StaticResource DangerButtonStyle}"
+                                                Padding="10,4"
+                                                Command="{Binding DataContext.DeleteSupplierCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="1"
+                   Text="{Binding ErrorMessage}"
+                   Foreground="{StaticResource DangerBrush}"
+                   VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>

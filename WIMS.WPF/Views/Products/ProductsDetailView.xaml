@@ -1,0 +1,39 @@
+<UserControl x:Class="WIMS.WPF.Views.Products.ProductsDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource ContentBackgroundBrush}">
+    <Grid Margin="28">
+        <Border Style="{StaticResource PanelStyle}" MaxWidth="760" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Ürün detayı" Style="{StaticResource SubHeaderTextStyle}"/>
+                    <TextBlock Text="Kod, kategori, birim ve kritik stok seviyesini tanımlayın."
+                               Style="{StaticResource MutedTextStyle}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <UniformGrid Grid.Row="2" Columns="2" Rows="3">
+                    <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StandardTextBoxStyle}" Margin="0,0,12,12" ToolTip="Ürün kodu"/>
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StandardTextBoxStyle}" Margin="0,0,0,12" ToolTip="Ürün adı"/>
+                    <ComboBox ItemsSource="{Binding Categories}" SelectedValue="{Binding CategoryId, Mode=TwoWay}" SelectedValuePath="Id" DisplayMemberPath="Name" Margin="0,0,12,12" ToolTip="Kategori"/>
+                    <ComboBox ItemsSource="{Binding Units}" SelectedValue="{Binding UnitId, Mode=TwoWay}" SelectedValuePath="Id" DisplayMemberPath="Name" Margin="0,0,0,12" ToolTip="Birim"/>
+                    <TextBox Text="{Binding ReorderPoint, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StandardTextBoxStyle}" Margin="0,0,12,0" ToolTip="Kritik stok"/>
+                    <TextBox Text="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StandardTextBoxStyle}" ToolTip="Birim fiyat"/>
+                </UniformGrid>
+                <TextBlock Grid.Row="3"
+                           Text="{Binding ErrorMessage}"
+                           Foreground="{StaticResource DangerBrush}"
+                           VerticalAlignment="Center"/>
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Vazgeç" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" Margin="0,0,10,0"/>
+                    <Button Content="Kaydet" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding SaveCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

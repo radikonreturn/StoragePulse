@@ -1,0 +1,44 @@
+<UserControl x:Class="WIMS.WPF.Views.PurchaseOrders.PurchaseOrderDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource ContentBackgroundBrush}">
+    <Grid Margin="28">
+        <Border Style="{StaticResource PanelStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="18"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Sipariş detayı" Style="{StaticResource SubHeaderTextStyle}"/>
+                    <TextBlock Text="Tedarikçi, teslim tarihi ve sipariş satırlarını kontrol edin."
+                               Style="{StaticResource MutedTextStyle}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <UniformGrid Grid.Row="2" Columns="3">
+                    <TextBox Text="{Binding OrderNumber}" IsReadOnly="True" Style="{StaticResource StandardTextBoxStyle}" Margin="0,0,12,0" ToolTip="Sipariş no"/>
+                    <TextBox Text="{Binding SupplierName}" IsReadOnly="True" Style="{StaticResource StandardTextBoxStyle}" Margin="0,0,12,0" ToolTip="Tedarikçi"/>
+                    <TextBox Text="{Binding Status}" IsReadOnly="True" Style="{StaticResource StandardTextBoxStyle}" ToolTip="Durum"/>
+                </UniformGrid>
+                <DataGrid Grid.Row="4"
+                          ItemsSource="{Binding Lines}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Ürün" Binding="{Binding ProductName}" Width="*"/>
+                        <DataGridTextColumn Header="Miktar" Binding="{Binding Quantity}" Width="120"/>
+                        <DataGridTextColumn Header="Birim fiyat" Binding="{Binding UnitPrice, StringFormat=N2}" Width="130"/>
+                        <DataGridTextColumn Header="Toplam" Binding="{Binding LineTotal, StringFormat=N2}" Width="130"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="İptal et" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelOrderCommand}" Margin="0,0,10,0"/>
+                    <Button Content="Onayla" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ConfirmOrderCommand}" Margin="0,0,10,0"/>
+                    <Button Content="Kaydet" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding SaveCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

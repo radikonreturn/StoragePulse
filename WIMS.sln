@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WIMS.Core", "WIMS.Core\WIMS.Core.csproj", "{0AFA6884-7F4F-4576-9C4B-639277547E95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WIMS.Data", "WIMS.Data\WIMS.Data.csproj", "{FC708962-FF02-49A2-9756-21446F3AE23B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WIMS.Application", "WIMS.Application\WIMS.Application.csproj", "{38F38FCD-9E2C-450F-B9E2-94C8FF1036CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WIMS.WPF", "WIMS.WPF\WIMS.WPF.csproj", "{007C152A-F190-457E-8B6D-B7893F77948B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0AFA6884-7F4F-4576-9C4B-639277547E95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AFA6884-7F4F-4576-9C4B-639277547E95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AFA6884-7F4F-4576-9C4B-639277547E95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AFA6884-7F4F-4576-9C4B-639277547E95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC708962-FF02-49A2-9756-21446F3AE23B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC708962-FF02-49A2-9756-21446F3AE23B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC708962-FF02-49A2-9756-21446F3AE23B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC708962-FF02-49A2-9756-21446F3AE23B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38F38FCD-9E2C-450F-B9E2-94C8FF1036CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38F38FCD-9E2C-450F-B9E2-94C8FF1036CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38F38FCD-9E2C-450F-B9E2-94C8FF1036CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38F38FCD-9E2C-450F-B9E2-94C8FF1036CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{007C152A-F190-457E-8B6D-B7893F77948B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{007C152A-F190-457E-8B6D-B7893F77948B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{007C152A-F190-457E-8B6D-B7893F77948B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{007C152A-F190-457E-8B6D-B7893F77948B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

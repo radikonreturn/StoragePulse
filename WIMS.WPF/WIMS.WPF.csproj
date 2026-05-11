@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WIMS.Application\WIMS.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\storagepulse-icon.png" />
+    <Resource Include="Styles\Colors.xaml" />
+    <Resource Include="Styles\Typography.xaml" />
+    <Resource Include="Styles\Controls.xaml" />
+    <Resource Include="Styles\DataGrid.xaml" />
+  </ItemGroup>
+</Project>

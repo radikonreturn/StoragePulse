@@ -1,0 +1,81 @@
+<UserControl x:Class="WIMS.WPF.Views.PurchaseOrders.PurchaseOrdersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource ContentBackgroundBrush}">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="18"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource PanelStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Satın alma siparişleri" Style="{StaticResource SubHeaderTextStyle}"/>
+                    <TextBlock Text="Taslak, onaylı ve teslim alınan siparişleri takip edin."
+                               Style="{StaticResource MutedTextStyle}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="Yeni sipariş"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding CreateOrderCommand}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource PanelStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Sipariş listesi" Style="{StaticResource SectionTitleTextStyle}"/>
+                    <Button Grid.Column="1"
+                            Content="Yenile"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding LoadOrdersCommand}"/>
+                </Grid>
+                <DataGrid Grid.Row="2"
+                          ItemsSource="{Binding Orders}"
+                          SelectedItem="{Binding SelectedOrder, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Sipariş no" Binding="{Binding OrderNumber}" Width="150"/>
+                        <DataGridTextColumn Header="Tedarikçi" Binding="{Binding SupplierName}" Width="*"/>
+                        <DataGridTextColumn Header="Tarih" Binding="{Binding OrderDate, StringFormat=dd.MM.yyyy}" Width="110"/>
+                        <DataGridTextColumn Header="Durum" Binding="{Binding Status}" Width="120"/>
+                        <DataGridTextColumn Header="Teslim tarihi" Binding="{Binding ExpectedDeliveryDate, StringFormat=dd.MM.yyyy}" Width="130"/>
+                        <DataGridTextColumn Header="Tutar" Binding="{Binding TotalAmount, StringFormat=N2}" Width="120"/>
+                        <DataGridTemplateColumn Header="İşlem" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Aç"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Padding="12,4"
+                                            Command="{Binding DataContext.ViewOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="1"
+                   Text="{Binding ErrorMessage}"
+                   Foreground="{StaticResource DangerBrush}"
+                   VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>
